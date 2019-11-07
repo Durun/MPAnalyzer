@@ -25,6 +25,8 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
+compileJava.dependsOn gradle.includedBuilds*.task(':build')
+clean.dependsOn gradle.includedBuilds*.task(':clean')
 dependencies {
     // This dependency is used by the application.
     implementation 'com.google.guava:guava:28.0-jre'
@@ -49,7 +51,8 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.28'
 
 	// CommentRemover
-	implementation 'com.github.YoshikiHigo:CommentRemover:v0.1.0'
+	//implementation 'com.github.YoshikiHigo:CommentRemover:v0.1.0'
+    implementation files("libs/CommentRemover/build/libs/CommentRemover.jar")
 }
 
 application {

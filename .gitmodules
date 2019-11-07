@@ -1,0 +1,3 @@
+[submodule "libs/CommentRemover"]
+	path = libs/CommentRemover
+	url = https://github.com/YoshikiHigo/CommentRemover.git

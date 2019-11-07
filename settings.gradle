@@ -8,3 +8,6 @@
  */
 
 rootProject.name = 'CPAnalyzer'
+
+includeBuild 'libs/CommentRemover'
+includeBuild 'libs/nitron'

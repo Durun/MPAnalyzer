@@ -1,3 +1,6 @@
 [submodule "libs/CommentRemover"]
 	path = libs/CommentRemover
 	url = https://github.com/YoshikiHigo/CommentRemover.git
+[submodule "libs/nitron"]
+	path = libs/nitron
+	url = git@github.com:Durun/nitron.git

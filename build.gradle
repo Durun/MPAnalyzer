@@ -25,7 +25,7 @@ repositories {
     maven { url 'https://jitpack.io' }
 }
 
-compileJava.dependsOn gradle.includedBuilds*.task(':build')
+compileJava.dependsOn gradle.includedBuilds*.task(':jar')
 clean.dependsOn gradle.includedBuilds*.task(':clean')
 dependencies {
     // This dependency is used by the application.
@@ -53,6 +53,7 @@ dependencies {
 	// CommentRemover
 	//implementation 'com.github.YoshikiHigo:CommentRemover:v0.1.0'
     implementation files("libs/CommentRemover/build/libs/CommentRemover.jar")
+    implementation files("libs/nitron/build/libs/nitron-0.1-SNAPSHOT.jar")
 }
 
 application {

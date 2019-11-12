@@ -152,7 +152,7 @@ public class StringUtility {
     List<Statement> statement = new ArrayList<>();
     String langName = language.name().toLowerCase();
     try {
-      statement = StatementProvider.INSTANCE.parse(text, langName);
+      statement = StatementProvider.INSTANCE.readStatements(text, langName);
     } catch (Exception e) {
       System.out.println(e);
     }

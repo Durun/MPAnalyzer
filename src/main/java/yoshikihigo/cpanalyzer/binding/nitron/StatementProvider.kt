@@ -1,11 +1,12 @@
 package yoshikihigo.cpanalyzer.binding.nitron
 
 import io.github.durun.nitron.binding.cpanalyzer.CodeProcessor
+import io.github.durun.nitron.core.ast.AstNode
 import io.github.durun.nitron.core.ast.visitor.AstFlattenVisitor
 import io.github.durun.nitron.core.config.NitronConfig
 import io.github.durun.nitron.core.config.loader.NitronConfigLoader
-import io.github.durun.nitron.inout.model.table.Codes.nText
 import yoshikihigo.cpanalyzer.data.Statement
+import yoshikihigo.cpanalyzer.lexer.token.Token
 import java.util.*
 
 object StatementProvider {
@@ -19,26 +20,35 @@ object StatementProvider {
                 ?: throw NoSuchElementException("$lang")
     }
 
-    fun parse(fileText: String, lang: String): List<Statement> {
+    fun readStatements(fileText: String, lang: String): List<Statement> {
         val processor = getProcessor(lang)
-        val astList = processor.split(fileText)
-        val result = processor.proceessWithOriginal(astList)
-        return result.map { (ast, normAst) ->
-            val tokens = ast.accept(AstFlattenVisitor)
-                    .mapIndexed { index, it ->
-                        NitronBinder.bindToken(
-                                value = it.token,
-                                line = it.range.line.start,
-                                index = index
-                        )
-                    }
-            val nText = normAst?.getText().orEmpty()
-            NitronBinder.bindStatement(
-                    tokens = tokens,
-                    rText = ast.getText() ?: throw Exception(),
-                    nText = nText
-            )
-        }
+        val astList = processor.parseSplitting(fileText)
+        return processor
+                .proceessWithOriginal(astList)
+                .map { (ast, normAst) -> bindStatement(ast, normAst) }
     }
 
+    private fun CodeProcessor.parseSplitting(fileText: String): List<AstNode> {
+        return this.split(fileText)
+    }
+
+
+    private fun AstNode.toTokens(): List<Token> {
+        return accept(AstFlattenVisitor)
+                .mapIndexed { index, it ->
+                    NitronBinder.bindToken(
+                            value = it.token,
+                            line = it.range.line.start,
+                            index = index
+                    )
+                }
+    }
+
+    private fun bindStatement(original: AstNode, normalized: AstNode?): Statement {
+        return NitronBinder.bindStatement(
+                tokens = original.toTokens(),
+                rText = original.getText() ?: throw Exception(),
+                nText = normalized?.getText().orEmpty()
+        )
+    }
 }

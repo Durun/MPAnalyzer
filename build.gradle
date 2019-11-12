@@ -15,6 +15,9 @@ plugins {
     id 'application'
     id 'eclipse'
     id 'maven'
+    
+    // for make fatJar
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 group = 'com.github.YoshikiHigo'
@@ -68,6 +71,10 @@ compileKotlin {
     kotlinOptions {
         jvmTarget = "1.8"
     }
+}
+
+shadowJar {
+    minimize()
 }
 
 run {

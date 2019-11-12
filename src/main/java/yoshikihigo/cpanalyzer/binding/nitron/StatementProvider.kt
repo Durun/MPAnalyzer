@@ -4,6 +4,7 @@ import io.github.durun.nitron.binding.cpanalyzer.CodeProcessor
 import io.github.durun.nitron.core.ast.visitor.AstFlattenVisitor
 import io.github.durun.nitron.core.config.NitronConfig
 import io.github.durun.nitron.core.config.loader.NitronConfigLoader
+import io.github.durun.nitron.inout.model.table.Codes.nText
 import yoshikihigo.cpanalyzer.data.Statement
 import java.util.*
 
@@ -20,9 +21,10 @@ object StatementProvider {
 
     fun parse(fileText: String, lang: String): List<Statement> {
         val processor = getProcessor(lang)
-        val result = processor.process(fileText)
-        return result.map { (statement, nText) ->
-            val tokens = statement.accept(AstFlattenVisitor)
+        val astList = processor.split(fileText)
+        val result = processor.proceessWithOriginal(astList)
+        return result.map { (ast, normAst) ->
+            val tokens = ast.accept(AstFlattenVisitor)
                     .mapIndexed { index, it ->
                         NitronBinder.bindToken(
                                 value = it.token,
@@ -30,9 +32,10 @@ object StatementProvider {
                                 index = index
                         )
                     }
+            val nText = normAst?.getText().orEmpty()
             NitronBinder.bindStatement(
                     tokens = tokens,
-                    rText = statement.getText() ?: throw Exception(),
+                    rText = ast.getText() ?: throw Exception(),
                     nText = nText
             )
         }

@@ -1,52 +1,65 @@
 package yoshikihigo.cpanalyzer;
 
-import java.util.Arrays;
 
-public enum LANGUAGE {
+import io.github.durun.nitron.core.config.loader.NitronConfigLoader;
+import yoshikihigo.cpanalyzer.binding.nitron.NitronBindConfig;
 
-  C("C") {
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-    @Override
-    public String[] getExtensions() {
-      return new String[] {".c", ".h"};
-    }
-  },
+// TODO
+public class LANGUAGE {
+  // static fields
+  private static final Map<String, LANGUAGE> languages = new HashMap<>();
+  // instance fields
+  final private String value;
+  final private Collection<String> extensions;
 
-  CPP("CPP") {
-
-    @Override
-    public String[] getExtensions() {
-      return new String[] {".cc", "cpp", "cxx", ".hh", "hpp", "hxx"};
-    }
-  },
-
-  JAVA("JAVA") {
-
-    @Override
-    public String[] getExtensions() {
-      return new String[] {".java"};
-    }
-  },
-
-  PYTHON("PYTHON") {
-
-    @Override
-    public String[] getExtensions() {
-      return new String[] {".py"};
-    }
-  };
-
-  final public String value;
-
-  private LANGUAGE(final String value) {
-    this.value = value;
+  static { // init
+    register("C", List.of(".c", ".h"));
+    register("CPP", List.of(".cc", "cpp", "cxx", ".hh", "hpp", "hxx"));
+    register("JAVA", List.of(".java"));
+    register("PYTHON", List.of(".py"));
+    NitronConfigLoader.INSTANCE
+            .load(NitronBindConfig.configFile)
+            .getLangConfig()
+            .forEach((langName, langConfig) -> {
+              register(langName, langConfig.getExtensions());
+            });
   }
 
-  abstract public String[] getExtensions();
+  private LANGUAGE(final String value, final Collection<String> extensions) {
+    this.value = value;
+    this.extensions = extensions;
+  }
 
-  final public boolean isTarget(final String name) {
-    return Arrays.asList(this.getExtensions())
-        .stream()
-        .anyMatch(extension -> name.endsWith(extension));
+  // static methods
+  public static LANGUAGE valueOf(final String key) {
+    return languages.get(key);
+  }
+
+  public static Collection<LANGUAGE> values() {
+    return languages.values();
+  }
+
+  public static void register(final String langName, final Collection<String> extensions) {
+    final LANGUAGE newLanguage = new LANGUAGE(langName, extensions);
+    register(newLanguage);
+  }
+
+  private static void register(final LANGUAGE newLanguage) {
+    final String key = newLanguage.name();
+    languages.put(key, newLanguage);  // languages can be overwritten
+  }
+
+  // instance methods
+  public String name() {
+    return this.value;
+  }
+
+  public boolean isTarget(final String fileName) {
+    return this.extensions.stream().anyMatch(fileName::endsWith);
   }
 }

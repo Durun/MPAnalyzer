@@ -73,10 +73,6 @@ compileKotlin {
     }
 }
 
-shadowJar {
-    minimize()
-}
-
 run {
   // 「args」という引数が存在するかチェック
   if (project.hasProperty('args')) {

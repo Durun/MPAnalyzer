@@ -10,7 +10,7 @@ import java.util.Collection;
 import yoshikihigo.cpanalyzer.CPAConfig;
 import yoshikihigo.cpanalyzer.data.Change;
 import yoshikihigo.cpanalyzer.data.Revision;
-
+import org.sqlite.JDBC;
 public class ChangeDAO {
 
   static public final ChangeDAO SINGLETON = new ChangeDAO();
@@ -36,6 +36,7 @@ public class ChangeDAO {
   synchronized public void initialize() {
 
     try {
+      Class dummyClass = org.sqlite.JDBC.class;
       Class.forName("org.sqlite.JDBC");
       final String database = CPAConfig.getInstance()
           .getDATABASE();

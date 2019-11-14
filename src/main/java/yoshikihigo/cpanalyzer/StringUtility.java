@@ -15,10 +15,19 @@ import java.util.stream.Collectors;
 import org.tmatesoft.svn.core.SVNException;
 import org.tmatesoft.svn.core.SVNURL;
 
+import yoshikihigo.commentremover.CRConfig;
+import yoshikihigo.commentremover.CommentRemover;
+import yoshikihigo.commentremover.CommentRemoverJC;
+import yoshikihigo.commentremover.CommentRemoverPY;
 import yoshikihigo.cpanalyzer.binding.nitron.StatementProvider;
 import yoshikihigo.cpanalyzer.data.Statement;
+import yoshikihigo.cpanalyzer.lexer.CLineLexer;
+import yoshikihigo.cpanalyzer.lexer.JavaLineLexer;
+import yoshikihigo.cpanalyzer.lexer.LineLexer;
+import yoshikihigo.cpanalyzer.lexer.PythonLineLexer;
 import yoshikihigo.cpanalyzer.lexer.token.STATEMENT;
 import yoshikihigo.cpanalyzer.lexer.token.Token;
+import yoshikihigo.cpanalyzer.logger.statement.StatementsPairLogger;
 
 public class StringUtility {
 
@@ -142,8 +151,17 @@ public class StringUtility {
     return text.split(System.lineSeparator());
   }
 
-  // TODO
+  // for compare results of splitToStatements
   public static List<Statement> splitToStatements(final String text, final LANGUAGE language) {
+    List<Statement> originalResult = splitToStatements_original(text, language);
+    List<Statement> nitronResult = splitToStatements_nitron(text, language);
+    // log
+    StatementsPairLogger.INSTANCE.log(originalResult, nitronResult);
+    return originalResult;
+  }
+
+  // for experiment
+  private static List<Statement> splitToStatements_nitron(final String text, final LANGUAGE language) {
 
     if (text.isEmpty()) {
       return new ArrayList<Statement>();
@@ -157,6 +175,35 @@ public class StringUtility {
       System.out.println(e);
     }
     return statement;
+  }
+
+  // for experiment
+  private static List<Statement> splitToStatements_original(final String text, final LANGUAGE language) {
+
+    if (text.isEmpty()) {
+      return new ArrayList<Statement>();
+    }
+
+    if (true) {
+      final String[] args = new String[7];
+      args[0] = "-q";
+      args[1] = "-blankline";
+      args[2] = "retain";
+      args[3] = "-bracketline";
+      args[4] = "retain";
+      args[5] = "-indent";
+      args[6] = "retain";
+      final CRConfig config = CRConfig.initialize(args);
+      final CommentRemover remover = new CommentRemoverJC(config);
+      final String normalizedText = remover.perform(text);
+      final LineLexer lexer = new JavaLineLexer();
+      final List<Token> tokens = lexer.lexFile(normalizedText);
+      final List<Statement> statements = Statement.getJCStatements(tokens);
+      return statements;
+    }
+    System.err.println("invalid programming language.");
+    System.exit(0);
+    return new ArrayList<Statement>();
   }
 
   public static int getLOC(final String text) {

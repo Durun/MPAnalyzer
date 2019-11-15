@@ -1,5 +1,6 @@
 package yoshikihigo.cpanalyzer.logger.statement
 
+import io.github.durun.nitron.inout.model.table.Codes.rText
 import yoshikihigo.cpanalyzer.data.Statement
 import java.io.PrintWriter
 import java.nio.file.Files
@@ -25,11 +26,16 @@ object StatementsPairLogger {
     }
 
     fun log(one: List<Statement>, other: List<Statement>) {
+        // failed parse
+        if (other.isEmpty()) return
         // align
-        val newOne: MutableList<Statement?> = one.toMutableList()
+        val newOne: MutableList<Statement?> = one
+                .asSequence()
+                .filterNot { it.rText.startsWith("package") || it.rText.startsWith("import") }
+                .toMutableList()
         other.forEachIndexed { index, it ->
             val rText = it.rText.trim()
-            if (!(
+            if (rText != null && !(
                             rText.endsWith('{') ||
                                     rText.endsWith('}') ||
                                     rText.endsWith(';')
@@ -48,6 +54,9 @@ object StatementsPairLogger {
                 .filter { (rText, nText) ->
                     (rText.first != rText.second) || (nText.first != nText.second)
                 }
+                .filter { (_, nText) ->
+                    (nText.first != null) || (nText.second != null)
+                }
                 .map { (rText, nText) ->
                     highlightDiff(rText) to highlightDiff(nText)
                 }
@@ -56,7 +65,7 @@ object StatementsPairLogger {
                 }
                 // replace NewLine
                 .map { (rText, nText) ->
-                    val trimNl = { it: String? -> it?.replace('\n', '\\') }
+                    val trimNl = { it: String? -> it?.replace('\n', '改') }
                     rText.map(trimNl) to nText.map(trimNl)
                 }
                 // replace |
@@ -70,21 +79,15 @@ object StatementsPairLogger {
     }
 
     private fun highlightDiff(pair: Pair<String?, String?>): Pair<String, String> {
-        return when (true) {
-            (pair.first == null) -> "`null`" to pair.second.orEmpty()
-            (pair.second == null) -> pair.first.orEmpty() to "`null`"
-            else -> {
-                val (same, diff1, diff2) = splitDifference(pair.map { it.orEmpty() })
-                "${same}${diff1.boldItalic()}" to "${same}${diff2.boldItalic()}"
-            }
-        }
+        val (same, diff1, diff2) = splitDifference(pair.map { it ?: "`null`" })
+        return "${same}${diff1.boldItalic()}" to "${same}${diff2.boldItalic()}"
     }
 
     private fun String.boldItalic(): String {
         return when (true) {
             this.isEmpty() -> this
             this.isBlank() -> this
-            else -> " ___${this.trim()}___ "
+            else -> " ___👉${this}👈___ "
         }
     }
 

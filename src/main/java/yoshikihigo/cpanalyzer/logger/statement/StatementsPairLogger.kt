@@ -31,7 +31,7 @@ object StatementsPairLogger {
         // align
         val newOne: MutableList<Statement?> = one
                 .asSequence()
-                .filterNot { it.rText.startsWith("package") || it.rText.startsWith("import") }
+                .filterNot { it.rText.startsWith("package ") || it.rText.startsWith("import ") }
                 .toMutableList()
         other.forEachIndexed { index, it ->
             val rText = it.rText.trim()

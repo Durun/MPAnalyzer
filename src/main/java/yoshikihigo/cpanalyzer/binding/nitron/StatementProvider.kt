@@ -49,7 +49,7 @@ object StatementProvider {
         return NitronBinder.bindStatement(
                 tokens = original.toTokens(),
                 rText = original.getText() ?: throw Exception(),
-                nText = normalized?.getText().orEmpty()
+                nText = normalized?.getText().orEmpty().trim()
         )
     }
 }

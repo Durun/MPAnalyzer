@@ -25,6 +25,7 @@ object StatementProvider {
         val astList = processor.parseSplitting(fileText)
         return processor
                 .proceessWithOriginal(astList)
+                .filter { it.second != null }
                 .map { (ast, normAst) -> bindStatement(ast, normAst) }
     }
 
@@ -48,7 +49,7 @@ object StatementProvider {
         return NitronBinder.bindStatement(
                 tokens = original.toTokens(),
                 rText = original.getText() ?: throw Exception(),
-                nText = normalized?.getText().orEmpty()
+                nText = normalized?.getText().orEmpty().trim()
         )
     }
 }

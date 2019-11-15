@@ -157,7 +157,7 @@ public class StringUtility {
     List<Statement> nitronResult = splitToStatements_nitron(text, language);
     // log
     StatementsPairLogger.INSTANCE.log(originalResult, nitronResult);
-    return originalResult;
+    return nitronResult;
   }
 
   // for experiment

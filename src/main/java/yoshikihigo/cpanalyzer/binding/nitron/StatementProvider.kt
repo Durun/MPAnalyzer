@@ -5,15 +5,22 @@ import io.github.durun.nitron.core.ast.node.AstNode
 import io.github.durun.nitron.core.ast.visitor.AstFlattenVisitor
 import io.github.durun.nitron.core.config.NitronConfig
 import io.github.durun.nitron.core.config.loader.NitronConfigLoader
+import yoshikihigo.cpanalyzer.CPAConfig
 import yoshikihigo.cpanalyzer.data.Statement
 import yoshikihigo.cpanalyzer.lexer.token.Token
+import java.nio.file.Paths
 import java.util.*
 
 object StatementProvider {
     private val config: NitronConfig = NitronConfigLoader.load(NitronBindConfig.configFile)
 
     private val processors: Map<String, Lazy<CodeProcessor>> = config.langConfig
-            .mapValues { lazy { CodeProcessor(it.value) } }
+            .mapValues { lazy {
+                CodeProcessor(
+                        it.value,
+                        dbPath = Paths.get(CPAConfig.getInstance().database)
+                )
+            } }
 
     private fun getProcessor(lang: String): CodeProcessor {
         return processors[lang]?.value
@@ -25,7 +32,11 @@ object StatementProvider {
         val astList = processor.parseSplitting(fileText)
         return processor
                 .proceessWithOriginal(astList)
-                .filter { it.second != null }
+                .mapNotNull { (ast, normAst) ->
+                    if (normAst != null) ast to normAst
+                    else null
+                }
+                .onEach { (_, normAst) -> processor.write(normAst) }    // record into DataBase
                 .map { (ast, normAst) -> bindStatement(ast, normAst) }
     }
 

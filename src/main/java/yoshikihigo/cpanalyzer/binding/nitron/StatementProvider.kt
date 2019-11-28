@@ -1,7 +1,7 @@
 package yoshikihigo.cpanalyzer.binding.nitron
 
 import io.github.durun.nitron.binding.cpanalyzer.CodeProcessor
-import io.github.durun.nitron.core.ast.AstNode
+import io.github.durun.nitron.core.ast.node.AstNode
 import io.github.durun.nitron.core.ast.visitor.AstFlattenVisitor
 import io.github.durun.nitron.core.config.NitronConfig
 import io.github.durun.nitron.core.config.loader.NitronConfigLoader
@@ -39,7 +39,7 @@ object StatementProvider {
                 .mapIndexed { index, it ->
                     NitronBinder.bindToken(
                             value = it.token,
-                            line = it.range.line.start,
+                            line = it.range.line.first,
                             index = index
                     )
                 }
@@ -48,7 +48,7 @@ object StatementProvider {
     private fun bindStatement(original: AstNode, normalized: AstNode?): Statement {
         return NitronBinder.bindStatement(
                 tokens = original.toTokens(),
-                rText = original.getText() ?: throw Exception(),
+                rText = original.getText(),
                 nText = normalized?.getText().orEmpty()
         )
     }

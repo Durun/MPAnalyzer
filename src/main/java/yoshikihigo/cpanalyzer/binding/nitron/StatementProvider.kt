@@ -16,9 +16,10 @@ object StatementProvider {
 
     private val processors: Map<String, Lazy<CodeProcessor>> = config.langConfig
             .mapValues { lazy {
+                val suffix = ".structures"
                 CodeProcessor(
                         it.value,
-                        dbPath = Paths.get(CPAConfig.getInstance().database)
+                        outputPath = Paths.get(CPAConfig.getInstance().database + suffix)
                 )
             } }
 

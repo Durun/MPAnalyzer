@@ -31,15 +31,12 @@ object StatementProvider {
     fun readStatements(fileText: String, lang: String): List<Statement> {
         val processor = getProcessor(lang)
         val astList = processor.parseSplitting(fileText)
-        val resultList = processor
+        return processor
                 .proceessWithOriginal(astList)
                 .mapNotNull { (ast, normAst) ->
                     if (normAst != null) ast to normAst
                     else null
                 }
-        val normAstList = resultList.map { it.second }
-        processor.write(normAstList)        // record into database
-        return resultList
                 .map { (ast, normAst) -> bindStatement(ast, normAst) }
     }
 

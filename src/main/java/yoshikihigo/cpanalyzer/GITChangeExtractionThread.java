@@ -18,6 +18,7 @@ import org.eclipse.jgit.revplot.PlotWalk;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.jgit.util.io.DisabledOutputStream;
 
+import yoshikihigo.cpanalyzer.binding.nitron.StatementProvider;
 import yoshikihigo.cpanalyzer.data.Change;
 import yoshikihigo.cpanalyzer.data.Revision;
 import yoshikihigo.cpanalyzer.data.Statement;
@@ -128,6 +129,10 @@ public class GITChangeExtractionThread extends Thread {
             StringUtility.splitToStatements(beforeText.toString(), language);
         final List<Statement> afterStatements =
             StringUtility.splitToStatements(afterText.toString(), language);
+        
+        // record statement structures into text file
+        StatementProvider.recordStatementStructure(beforeStatements, language);
+        StatementProvider.recordStatementStructure(afterStatements, language);
 
         final List<Change> changes = lcs.getChanges(beforeStatements, afterStatements, oldPath);
 

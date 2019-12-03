@@ -59,11 +59,12 @@ object StatementProvider {
                 }
     }
 
-    private fun bindStatement(original: AstNode, normalized: AstNode?): Statement {
+    private fun bindStatement(original: AstNode, normalized: AstNode?): StatementWithAst {
         return NitronBinder.bindStatement(
                 tokens = original.toTokens(),
                 rText = original.getText(),
-                nText = normalized?.getText().orEmpty()
+                nText = normalized?.getText().orEmpty(),
+                ast = normalized
         )
     }
 }

@@ -6,6 +6,7 @@ import io.github.durun.nitron.core.ast.visitor.AstFlattenVisitor
 import io.github.durun.nitron.core.config.NitronConfig
 import io.github.durun.nitron.core.config.loader.NitronConfigLoader
 import yoshikihigo.cpanalyzer.CPAConfig
+import yoshikihigo.cpanalyzer.LANGUAGE
 import yoshikihigo.cpanalyzer.data.Statement
 import yoshikihigo.cpanalyzer.lexer.token.Token
 import java.nio.file.Paths
@@ -38,6 +39,23 @@ object StatementProvider {
                     else null
                 }
                 .map { (ast, normAst) -> bindStatement(ast, normAst) }
+    }
+
+    private fun recordStructure(astList: List<AstNode>, lang: String) {
+        val processor = getProcessor(lang)
+        processor.write(astList)
+    }
+
+    @JvmStatic
+    fun recordStatementStructure(statementList: List<Statement>, lang: String) {
+        val statements = statementList.filterIsInstance<StatementWithAst>()
+        val asts = statements.mapNotNull { it.ast }
+        recordStructure(asts, lang)
+    }
+
+    @JvmStatic
+    fun recordStatementStructure(statementList: List<Statement>, language: LANGUAGE) {
+        recordStatementStructure(statementList, lang = language.name().toLowerCase())
     }
 
     private fun CodeProcessor.parseSplitting(fileText: String): List<AstNode> {

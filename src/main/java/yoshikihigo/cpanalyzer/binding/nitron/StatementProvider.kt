@@ -68,10 +68,10 @@ object StatementProvider {
                 .mapIndexed { index, it ->
                     NitronBinder.bindToken(
                             value = it.token,
-                            line = it.range.line.first,
+                            line = it.line,
                             index = index
                     )
-                }
+                }.toList()
     }
 
     private fun bindStatement(original: AstNode, normalized: AstNode?): StatementWithAst {

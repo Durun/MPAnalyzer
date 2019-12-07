@@ -32,13 +32,13 @@ object StatementProvider {
     fun readStatements(fileText: String, lang: String): List<Statement> {
         val processor = getProcessor(lang)
         val astList = processor.parseSplitting(fileText)
-        return processor
-                .proceessWithOriginal(astList)
-                .mapNotNull { (ast, normAst) ->
-                    if (normAst != null) ast to normAst
-                    else null
-                }
-                .map { (ast, normAst) -> bindStatement(ast, normAst) }
+        return astList.mapNotNull { ast ->
+            val tokens = ast.toTokens()
+            val rText = ast.getText()
+            val normAst = processor.proceess(ast)
+            if (normAst != null) bindStatement(tokens, rText, normAst)
+            else null
+        }
     }
 
     private fun recordStructure(astList: List<AstNode>, lang: String) {
@@ -67,11 +67,20 @@ object StatementProvider {
         return accept(AstFlattenVisitor)
                 .mapIndexed { index, it ->
                     NitronBinder.bindToken(
-                            value = it.token,
+                            value = String.format(format = it.token),
                             line = it.line,
                             index = index
                     )
                 }.toList()
+    }
+
+    private fun bindStatement(tokens: List<Token>, rText: String, normalized: AstNode?): StatementWithAst {
+        return NitronBinder.bindStatement(
+                tokens = tokens,
+                rText = rText,
+                nText = normalized?.getText().orEmpty(),
+                ast = normalized
+        )
     }
 
     private fun bindStatement(original: AstNode, normalized: AstNode?): StatementWithAst {

@@ -130,10 +130,6 @@ public class GITChangeExtractionThread extends Thread {
         final List<Statement> afterStatements =
             StringUtility.splitToStatements(afterText.toString(), language);
         
-        // record statement structures into text file
-        StatementProvider.recordStatementStructure(beforeStatements, language);
-        StatementProvider.recordStatementStructure(afterStatements, language);
-
         final List<Change> changes = lcs.getChanges(beforeStatements, afterStatements, oldPath);
 
         for (final Change change : changes) {
@@ -147,6 +143,9 @@ public class GITChangeExtractionThread extends Thread {
           }
 
           ChangeDAO.SINGLETON.addChange(change);
+          // record statement structures into text file
+          StatementProvider.recordStatementStructure(change.before.statements, language);
+          StatementProvider.recordStatementStructure(change.after.statements, language);
         }
 
       }

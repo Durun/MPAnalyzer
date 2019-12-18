@@ -85,28 +85,13 @@ public class LCS {
       if (current.match) {
 
         if (!xdiff.isEmpty() || !ydiff.isEmpty()) {
-          final List<Statement> xStatements = xdiff.isEmpty() ? Collections.<Statement>emptyList()
-              : array1.subList(xdiff.first(), xdiff.last() + 1);
-          final List<Statement> yStatements = ydiff.isEmpty() ? Collections.<Statement>emptyList()
-              : array2.subList(ydiff.first(), ydiff.last() + 1);
-
-          if ((xStatements.size() <= CHANGE_SIZE) && (yStatements.size() <= CHANGE_SIZE)) {
-            final List<Token> xTokens = getTokens(xStatements);
-            final List<Token> yTokens = getTokens(yStatements);
-            final DiffType diffType = getType(xTokens, yTokens);
-
-            final Code beforeCodeFragment = new Code(software, xStatements);
-            final Code afterCodeFragment = new Code(software, yStatements);
-            final ChangeType changeType = beforeCodeFragment.nText.isEmpty() ? ChangeType.ADD
-                : afterCodeFragment.nText.isEmpty() ? ChangeType.DELETE : ChangeType.REPLACE;
-            final Change change = new Change(software, filepath, beforeCodeFragment,
-                afterCodeFragment, revision, changeType, diffType);
-            changes.add(change);
-          }
+//////////////////////////////////////////  extracted
+          final Change change = getChangeOrNull(array1, array2, xdiff, ydiff, CHANGE_SIZE, filepath);
+          if (change != null) changes.add(change);
+//////////////////////////////////////////
           xdiff.clear();
           ydiff.clear();
         }
-
       } else {
         final Cell previous = current.base;
         if (null != previous) {
@@ -118,16 +103,44 @@ public class LCS {
           }
         }
       }
-
       if (null != current.base) {
         current = current.base;
       } else {
         break;
       }
     }
-
     return changes;
   }
+
+  // extracted
+  private Change getChangeOrNull(
+          final List<Statement> array1, final List<Statement> array2,
+          final SortedSet<Integer> xdiff, final SortedSet<Integer> ydiff,
+          final int CHANGE_SIZE,
+          final String filepath) {
+
+    final Change result;
+
+    final List<Statement> xStatements = xdiff.isEmpty() ? Collections.<Statement>emptyList()
+            : array1.subList(xdiff.first(), xdiff.last() + 1);
+    final List<Statement> yStatements = ydiff.isEmpty() ? Collections.<Statement>emptyList()
+            : array2.subList(ydiff.first(), ydiff.last() + 1);
+
+    if ((xStatements.size() <= CHANGE_SIZE) && (yStatements.size() <= CHANGE_SIZE)) {
+      final List<Token> xTokens = getTokens(xStatements);
+      final List<Token> yTokens = getTokens(yStatements);
+      final DiffType diffType = getType(xTokens, yTokens);
+
+      final Code beforeCodeFragment = new Code(software, xStatements);
+      final Code afterCodeFragment = new Code(software, yStatements);
+      final ChangeType changeType = beforeCodeFragment.nText.isEmpty() ? ChangeType.ADD
+              : afterCodeFragment.nText.isEmpty() ? ChangeType.DELETE : ChangeType.REPLACE;
+      result = new Change(software, filepath, beforeCodeFragment,
+              afterCodeFragment, revision, changeType, diffType);
+    } else result = null;
+    return result;
+  }
+
 
   private List<Token> getTokens(final List<Statement> statements) {
     final List<Token> tokens = new ArrayList<>();

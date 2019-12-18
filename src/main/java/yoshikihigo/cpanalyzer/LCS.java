@@ -42,42 +42,11 @@ public class LCS {
     final int CHANGE_SIZE = CPAConfig.getInstance()
         .getCHANGESIZE();
 
-    final Cell[][] table = new Cell[array1.size()][array2.size()];
-    if (Arrays.equals(array1.get(0).hash, array2.get(0).hash)) {
-      table[0][0] = new Cell(1, true, 0, 0, null);
-    } else {
-      table[0][0] = new Cell(0, false, 0, 0, null);
-    }
-    for (int x = 1; x < array1.size(); x++) {
-      if (Arrays.equals(array1.get(x).hash, array2.get(0).hash)) {
-        table[x][0] = new Cell(1, true, x, 0, null);
-      } else {
-        table[x][0] = new Cell(table[x - 1][0].value, false, x, 0, table[x - 1][0]);
-      }
-    }
-    for (int y = 1; y < array2.size(); y++) {
-      if (Arrays.equals(array1.get(0).hash, array2.get(y).hash)) {
-        table[0][y] = new Cell(1, true, 0, y, null);
-      } else {
-        table[0][y] = new Cell(table[0][y - 1].value, false, 0, y, table[0][y - 1]);
-      }
-    }
-    for (int x = 1; x < array1.size(); x++) {
-      for (int y = 1; y < array2.size(); y++) {
-        final Cell left = table[x - 1][y];
-        final Cell up = table[x][y - 1];
-        final Cell upleft = table[x - 1][y - 1];
-        if (Arrays.equals(array1.get(x).hash, array2.get(y).hash)) {
-          table[x][y] = new Cell(upleft.value + 1, true, x, y, upleft);
-        } else {
-          table[x][y] = (left.value >= up.value) ? new Cell(left.value, false, x, y, left)
-              : new Cell(up.value, false, x, y, up);
-        }
-      }
-    }
 
     final List<Change> changes = new ArrayList<>();
-    Cell current = table[array1.size() - 1][array2.size() - 1];
+    //////////////////////// extracted
+    Cell current = createFirstCell(array1, array2);
+    ////////////////////////
     final SortedSet<Integer> xdiff = new TreeSet<>();
     final SortedSet<Integer> ydiff = new TreeSet<>();
     while (true) {
@@ -112,6 +81,43 @@ public class LCS {
     return changes;
   }
 
+  // extracted
+  private Cell createFirstCell(final List<Statement> array1, final List<Statement> array2) {
+    final Cell[][] table = new Cell[array1.size()][array2.size()];
+    if (Arrays.equals(array1.get(0).hash, array2.get(0).hash)) {
+      table[0][0] = new Cell(1, true, 0, 0, null);
+    } else {
+      table[0][0] = new Cell(0, false, 0, 0, null);
+    }
+    for (int x = 1; x < array1.size(); x++) {
+      if (Arrays.equals(array1.get(x).hash, array2.get(0).hash)) {
+        table[x][0] = new Cell(1, true, x, 0, null);
+      } else {
+        table[x][0] = new Cell(table[x - 1][0].value, false, x, 0, table[x - 1][0]);
+      }
+    }
+    for (int y = 1; y < array2.size(); y++) {
+      if (Arrays.equals(array1.get(0).hash, array2.get(y).hash)) {
+        table[0][y] = new Cell(1, true, 0, y, null);
+      } else {
+        table[0][y] = new Cell(table[0][y - 1].value, false, 0, y, table[0][y - 1]);
+      }
+    }
+    for (int x = 1; x < array1.size(); x++) {
+      for (int y = 1; y < array2.size(); y++) {
+        final Cell left = table[x - 1][y];
+        final Cell up = table[x][y - 1];
+        final Cell upleft = table[x - 1][y - 1];
+        if (Arrays.equals(array1.get(x).hash, array2.get(y).hash)) {
+          table[x][y] = new Cell(upleft.value + 1, true, x, y, upleft);
+        } else {
+          table[x][y] = (left.value >= up.value) ? new Cell(left.value, false, x, y, left)
+                  : new Cell(up.value, false, x, y, up);
+        }
+      }
+    }
+    return table[array1.size() - 1][array2.size() - 1];
+  }
   // extracted
   private Change getChangeOrNull(
           final List<Statement> array1, final List<Statement> array2,

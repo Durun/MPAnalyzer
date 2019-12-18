@@ -67,7 +67,7 @@ object StatementProvider {
         return accept(AstFlattenVisitor)
                 .mapIndexed { index, it ->
                     NitronBinder.bindToken(
-                            value = String.format(format = it.token),
+                            value = it.token,
                             line = it.line,
                             index = index
                     )

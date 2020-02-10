@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
+import io.github.durun.nitron.core.CodeHashKt;
 import yoshikihigo.cpanalyzer.CPAConfig;
 import yoshikihigo.cpanalyzer.lexer.token.ABSTRACT;
 import yoshikihigo.cpanalyzer.lexer.token.ANNOTATION;
@@ -458,16 +459,7 @@ public class Statement {
   }
 
   public static byte[] getMD5(final String text) {
-    try {
-      final MessageDigest md = MessageDigest.getInstance("MD5");
-      final byte[] data = text.getBytes("UTF-8");
-      md.update(data);
-      final byte[] digest = md.digest();
-      return digest;
-    } catch (final NoSuchAlgorithmException | UnsupportedEncodingException e) {
-      e.printStackTrace();
-      return new byte[0];
-    }
+    return CodeHashKt.codeHashOf(text);
   }
 
   private static boolean isJCTypeDefinition(final List<Token> tokens) {

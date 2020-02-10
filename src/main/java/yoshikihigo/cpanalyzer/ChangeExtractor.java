@@ -144,8 +144,14 @@ public class ChangeExtractor {
     }
 
     try {
-      for (final Future<?> future : futures) {
-        future.get();
+      int progress = 0;
+      final int allProgress = futures.size();
+      while(0 < futures.size()) {
+        System.out.print("\rProgress: " + progress + " / " + allProgress + "\t");
+        progress++;
+        final Future<?> f = futures.get(0);
+        futures.remove(0);  // free memory here
+        f.get();
       }
       ChangeDAO.SINGLETON.flush();
       ChangeDAO.SINGLETON.close();

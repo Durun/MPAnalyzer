@@ -1,13 +1,12 @@
 package yoshikihigo.cpanalyzer.binding.nitron
 
+import io.github.durun.nitron.core.ast.node.AstNode
+import io.github.durun.nitron.core.codeHashOf
 import yoshikihigo.cpanalyzer.data.Statement
 import yoshikihigo.cpanalyzer.lexer.token.GenericToken
 import yoshikihigo.cpanalyzer.lexer.token.Token
-import java.security.MessageDigest
 
 object NitronBinder {
-    private val digester = MessageDigest.getInstance("MD5")
-
     fun bindToken(
             value: String,
             line: Int,
@@ -16,6 +15,7 @@ object NitronBinder {
         return GenericToken(value, line, index)
     }
 
+    @Deprecated("returns Statement with no AST information.")
     fun bindStatement(
             tokens: List<Token>,
             rText: String,
@@ -25,7 +25,22 @@ object NitronBinder {
     ): Statement {
         val fromLine = tokens.first().line
         val toLine = tokens.last().line
-        val hash = digester.digest(nText.toByteArray())
+        val hash = codeHashOf(nText)
         return Statement(fromLine, toLine, nestLevel, isTarget, tokens, rText, nText, hash)
+    }
+
+    fun bindStatement(
+            tokens: List<Token>,
+            rText: String,
+            nText: String,
+            nestLevel: Int = -1,        // TODO
+            isTarget: Boolean = true,   // TODO
+            ast: AstNode?
+    ): StatementWithAst {
+        val fromLine = tokens.first().line
+        val toLine = tokens.last().line
+        val hash = codeHashOf(nText)
+        return StatementWithAst(fromLine, toLine, nestLevel, isTarget, tokens, rText, nText, hash,
+                ast)
     }
 }

@@ -1,6 +1,4 @@
-MPAnalyzer
+MPAnalyzer-nitro
 ==========
 
-forked from [YoshikiHigo/MPAnalyzer](https://github.com/YoshikiHigo/MPAnalyzer)
-
-tool for analyzing modification patterns 
+A multilingual edition of [MPAnalyzer](https://github.com/YoshikiHigo/MPAnalyzer) powered by [nitron](https://github.com/Durun/nitron)

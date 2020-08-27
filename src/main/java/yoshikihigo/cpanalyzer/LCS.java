@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-
+import java.util.stream.Collectors;
 import yoshikihigo.cpanalyzer.data.Change;
 import yoshikihigo.cpanalyzer.data.Change.ChangeType;
 import yoshikihigo.cpanalyzer.data.Change.DiffType;
@@ -17,72 +17,31 @@ import yoshikihigo.cpanalyzer.lexer.token.Token;
 
 public class LCS {
 
-  final public String software;
+  final public CPAConfig config;
+  final public String repo;
   final public Revision revision;
 
-  public LCS(final String software, final Revision revision) {
-    this.software = software;
+  public LCS(final CPAConfig config, final String repo, final Revision revision) {
+    this.config = config;
+    this.repo = repo;
     this.revision = revision;
   }
 
   public List<Change> getChanges(final List<Statement> array1, final List<Statement> array2,
-      final String filepath) {
+                                 final String filepath) {
 
     if (array1.isEmpty() || array2.isEmpty()) {
       return Collections.emptyList();
     }
 
-    final int large = CPAConfig.getInstance()
-        .getLARGE();
+    final int large = config.getLARGE();
     if (large < array1.size() || large < array2.size()) {
       System.out.println("large file. (" + array1.size() + " x " + array2.size() + ")");
       return Collections.emptyList();
     }
 
-    final int CHANGE_SIZE = CPAConfig.getInstance()
-        .getCHANGESIZE();
+    final int CHANGE_SIZE = config.getCHANGESIZE();
 
-
-    final List<Change> changes = new ArrayList<>();
-    //////////////////////// extracted
-    Cell current = createFirstCell(array1, array2);
-    ////////////////////////
-    final SortedSet<Integer> xdiff = new TreeSet<>();
-    final SortedSet<Integer> ydiff = new TreeSet<>();
-    while (true) {
-
-      if (current.match) {
-
-        if (!xdiff.isEmpty() || !ydiff.isEmpty()) {
-//////////////////////////////////////////  extracted
-          final Change change = getChangeOrNull(array1, array2, xdiff, ydiff, CHANGE_SIZE, filepath);
-          if (change != null) changes.add(change);
-//////////////////////////////////////////
-          xdiff.clear();
-          ydiff.clear();
-        }
-      } else {
-        final Cell previous = current.base;
-        if (null != previous) {
-          if (previous.x < current.x) {
-            xdiff.add(current.x);
-          }
-          if (previous.y < current.y) {
-            ydiff.add(current.y);
-          }
-        }
-      }
-      if (null != current.base) {
-        current = current.base;
-      } else {
-        break;
-      }
-    }
-    return changes;
-  }
-
-  // extracted
-  private Cell createFirstCell(final List<Statement> array1, final List<Statement> array2) {
     final Cell[][] table = new Cell[array1.size()][array2.size()];
     if (Arrays.equals(array1.get(0).hash, array2.get(0).hash)) {
       table[0][0] = new Cell(1, true, 0, 0, null);
@@ -116,43 +75,64 @@ public class LCS {
         }
       }
     }
-    return table[array1.size() - 1][array2.size() - 1];
+
+    final List<Change> changes = new ArrayList<>();
+    Cell current = table[array1.size() - 1][array2.size() - 1];
+    final SortedSet<Integer> xdiff = new TreeSet<>();
+    final SortedSet<Integer> ydiff = new TreeSet<>();
+    while (true) {
+
+      if (current.match) {
+
+        if (!xdiff.isEmpty() || !ydiff.isEmpty()) {
+          final List<Statement> xStatements = xdiff.isEmpty() ? Collections.<Statement>emptyList()
+                  : array1.subList(xdiff.first(), xdiff.last() + 1);
+          final List<Statement> yStatements = ydiff.isEmpty() ? Collections.<Statement>emptyList()
+                  : array2.subList(ydiff.first(), ydiff.last() + 1);
+
+          if ((xStatements.size() <= CHANGE_SIZE) && (yStatements.size() <= CHANGE_SIZE)) {
+            final List<Token> xTokens = getTokens(xStatements);
+            final List<Token> yTokens = getTokens(yStatements);
+            final DiffType diffType = getType(xTokens, yTokens);
+
+            final Code beforeCodeFragment = new Code(repo, xStatements);
+            final Code afterCodeFragment = new Code(repo, yStatements);
+            final ChangeType changeType = beforeCodeFragment.nText.isEmpty() ? ChangeType.ADD
+                    : afterCodeFragment.nText.isEmpty() ? ChangeType.DELETE : ChangeType.REPLACE;
+            final Change change = new Change(repo, filepath, beforeCodeFragment, afterCodeFragment,
+                    revision, changeType, diffType);
+            changes.add(change);
+          }
+          xdiff.clear();
+          ydiff.clear();
+        }
+
+      } else {
+        final Cell previous = current.base;
+        if (null != previous) {
+          if (previous.x < current.x) {
+            xdiff.add(current.x);
+          }
+          if (previous.y < current.y) {
+            ydiff.add(current.y);
+          }
+        }
+      }
+
+      if (null != current.base) {
+        current = current.base;
+      } else {
+        break;
+      }
+    }
+
+    return changes;
   }
-  // extracted
-  private Change getChangeOrNull(
-          final List<Statement> array1, final List<Statement> array2,
-          final SortedSet<Integer> xdiff, final SortedSet<Integer> ydiff,
-          final int CHANGE_SIZE,
-          final String filepath) {
-
-    final Change result;
-
-    final List<Statement> xStatements = xdiff.isEmpty() ? Collections.<Statement>emptyList()
-            : array1.subList(xdiff.first(), xdiff.last() + 1);
-    final List<Statement> yStatements = ydiff.isEmpty() ? Collections.<Statement>emptyList()
-            : array2.subList(ydiff.first(), ydiff.last() + 1);
-
-    if ((xStatements.size() <= CHANGE_SIZE) && (yStatements.size() <= CHANGE_SIZE)) {
-      final List<Token> xTokens = getTokens(xStatements);
-      final List<Token> yTokens = getTokens(yStatements);
-      final DiffType diffType = getType(xTokens, yTokens);
-
-      final Code beforeCodeFragment = new Code(software, xStatements);
-      final Code afterCodeFragment = new Code(software, yStatements);
-      final ChangeType changeType = beforeCodeFragment.nText.isEmpty() ? ChangeType.ADD
-              : afterCodeFragment.nText.isEmpty() ? ChangeType.DELETE : ChangeType.REPLACE;
-      result = new Change(software, filepath, beforeCodeFragment,
-              afterCodeFragment, revision, changeType, diffType);
-    } else result = null;
-    return result;
-  }
-
 
   private List<Token> getTokens(final List<Statement> statements) {
-    final List<Token> tokens = new ArrayList<>();
-    statements.stream()
-        .forEach(statement -> tokens.addAll(statement.tokens));
-    return tokens;
+    return statements.stream()
+            .flatMap(s -> s.tokens.stream())
+            .collect(Collectors.toList());
   }
 
   private DiffType getType(final List<Token> tokens1, final List<Token> tokens2) {
@@ -166,7 +146,7 @@ public class LCS {
     {
 
       if (tokens1.get(0)
-          .getClass() == tokens2.get(0)
+              .getClass() == tokens2.get(0)
               .getClass()) {
         table[0][0] = new Cell(1, true, 0, 0, null);
       } else {
@@ -174,7 +154,7 @@ public class LCS {
       }
       for (int x = 1; x < tokens1.size(); x++) {
         if (tokens1.get(x)
-            .getClass() == tokens2.get(0)
+                .getClass() == tokens2.get(0)
                 .getClass()) {
           table[x][0] = new Cell(1, true, x, 0, null);
         } else {
@@ -183,7 +163,7 @@ public class LCS {
       }
       for (int y = 1; y < tokens2.size(); y++) {
         if (tokens1.get(0)
-            .getClass() == tokens2.get(y)
+                .getClass() == tokens2.get(y)
                 .getClass()) {
           table[0][y] = new Cell(1, true, 0, y, null);
         } else {
@@ -196,12 +176,12 @@ public class LCS {
           final Cell up = table[x][y - 1];
           final Cell upleft = table[x - 1][y - 1];
           if (tokens1.get(x)
-              .getClass() == tokens2.get(y)
+                  .getClass() == tokens2.get(y)
                   .getClass()) {
             table[x][y] = new Cell(upleft.value + 1, true, x, y, upleft);
           } else {
             table[x][y] = (left.value >= up.value) ? new Cell(left.value, false, x, y, left)
-                : new Cell(up.value, false, x, y, up);
+                    : new Cell(up.value, false, x, y, up);
           }
         }
       }
@@ -249,7 +229,7 @@ public class LCS {
             table[x][y] = new Cell(upleft.value + 1, true, x, y, upleft);
           } else {
             table[x][y] = (left.value >= up.value) ? new Cell(left.value, false, x, y, left)
-                : new Cell(up.value, false, x, y, up);
+                    : new Cell(up.value, false, x, y, up);
           }
         }
       }

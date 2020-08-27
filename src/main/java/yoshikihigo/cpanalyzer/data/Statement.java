@@ -52,10 +52,9 @@ import yoshikihigo.cpanalyzer.lexer.token.WHITESPACE;
 
 public class Statement {
 
-  public static List<Statement> getJCStatements(final List<Token> allTokens)
+  public static List<Statement> getJCStatements(final CPAConfig config, final List<Token> allTokens)
       throws EmptyStackException {
 
-    final CPAConfig config = CPAConfig.getInstance();
 
     final List<Statement> statements = new ArrayList<>();
     List<Token> buildingStatementTokens = new ArrayList<>();
@@ -175,7 +174,7 @@ public class Statement {
     return statements;
   }
 
-  public static List<Statement> getPYStatements(final List<Token> allTokens)
+  public static List<Statement> getPYStatements(final CPAConfig config, final List<Token> allTokens)
       throws EmptyStackException {
 
     final List<Statement> statements = new ArrayList<Statement>();
@@ -190,8 +189,7 @@ public class Statement {
     int inSquareBracketDepth = 0;
     boolean interrupted = false;
     boolean isIndent = true;
-    final boolean isDebug = CPAConfig.getInstance()
-        .isDEBUG();
+    final boolean isDebug = config.isDEBUG();
 
     try {
       for (final Token token : allTokens) {

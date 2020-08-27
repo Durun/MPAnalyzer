@@ -42,6 +42,9 @@ dependencies {
     // Use JUnit test framework
     testImplementation 'junit:junit:4.12'
     
+    // https://mvnrepository.com/artifact/org.assertj/assertj-core
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.14.0'
+
     // https://mvnrepository.com/artifact/org.tmatesoft.svnkit/svnkit
 	compile group: 'org.tmatesoft.svnkit', name: 'svnkit', version: '1.10.1' 
 	
@@ -57,6 +60,9 @@ dependencies {
     // https://mvnrepository.com/artifact/org.slf4j/slf4j-nop
     //testCompile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.28'
     compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.28'
+
+    // https://mvnrepository.com/artifact/com.google.code.gson/gson
+    compile group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
 
 	// CommentRemover
 	implementation 'com.github.YoshikiHigo:CommentRemover:v0.1.1'

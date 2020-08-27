@@ -18,6 +18,8 @@ plugins {
     
     // for make fatJar
     id 'com.github.johnrengelman.shadow' version '5.2.0'
+
+    id 'maven-publish'
 }
 
 group = 'com.github.YoshikiHigo'
@@ -57,8 +59,7 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.28'
 
 	// CommentRemover
-	//implementation 'com.github.YoshikiHigo:CommentRemover:v0.1.0'
-    implementation files("libs/CommentRemover/build/libs/CommentRemover.jar")
+	implementation 'com.github.YoshikiHigo:CommentRemover:v0.1.1'
     implementation group: 'io.github.durun', name: 'nitron', version: '0.1-SNAPSHOT'
 }
 
@@ -79,4 +80,13 @@ run {
     // 存在する場合は、半角スペースでsplitして引数に設定する
     args(project.args.split('\\s+'))
   }
+}
+
+publishing {
+    publications {
+		maven(MavenPublication) {
+			version = 'nitro-0.1'
+			from components.java
+		}
+	}
 }

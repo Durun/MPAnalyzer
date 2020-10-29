@@ -45,7 +45,7 @@ public class LANGUAGE {
   }
 
   public static void register(final String langName, final Collection<String> extensions) {
-    final LANGUAGE newLanguage = new LANGUAGE(langName, extensions);
+    final LANGUAGE newLanguage = new LANGUAGE(langName.toUpperCase(), extensions);
     register(newLanguage);
   }
 

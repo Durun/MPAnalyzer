@@ -4,3 +4,4 @@
 [submodule "libs/nitron"]
 	path = libs/nitron
 	url = git@github.com:Durun/nitron.git
+	branch = master

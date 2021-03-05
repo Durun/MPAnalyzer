@@ -3,5 +3,5 @@
 	url = https://github.com/YoshikiHigo/CommentRemover.git
 [submodule "libs/nitron"]
 	path = libs/nitron
-	url = git@github.com:Durun/nitron.git
+	url = https://github.com:Durun/nitron.git
 	branch = master

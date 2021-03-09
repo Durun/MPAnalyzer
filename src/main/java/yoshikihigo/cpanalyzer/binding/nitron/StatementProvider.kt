@@ -42,6 +42,7 @@ object StatementProvider {
 
         val tree = extractor?.getAst(MD5.digest(fileText).toString(), lang, processor.nodeTypePool) // get AST from cache
             ?: processor.parse(fileText)
+                .also { print("(cache missed)") }
 
         val astList = processor.split(tree)
 

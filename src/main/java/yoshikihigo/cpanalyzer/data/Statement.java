@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.stream.Collectors;
 
-import io.github.durun.nitron.core.CodeHashKt;
+import io.github.durun.nitron.core.MD5;
 import yoshikihigo.cpanalyzer.CPAConfig;
 import yoshikihigo.cpanalyzer.lexer.token.ABSTRACT;
 import yoshikihigo.cpanalyzer.lexer.token.ANNOTATION;
@@ -459,7 +459,7 @@ public class Statement {
   }
 
   public static byte[] getMD5(final String text) {
-    return CodeHashKt.codeHashOf(text);
+    return MD5.digest(text).getBytes();
   }
 
   private static boolean isJCTypeDefinition(final List<Token> tokens) {

@@ -1,8 +1,13 @@
 package yoshikihigo.cpanalyzer.binding.nitron
 
+import io.github.durun.nitron.app.preparse.Extractor
 import io.github.durun.nitron.binding.cpanalyzer.CodeProcessor
+import io.github.durun.nitron.core.MD5
 import io.github.durun.nitron.core.ast.node.AstNode
+import io.github.durun.nitron.core.ast.node.AstRuleNode
+import io.github.durun.nitron.core.ast.node.AstTerminalNode
 import io.github.durun.nitron.core.ast.visitor.AstFlattenVisitor
+import io.github.durun.nitron.core.ast.visitor.AstVisitor
 import io.github.durun.nitron.core.config.NitronConfig
 import io.github.durun.nitron.core.config.loader.NitronConfigLoader
 import yoshikihigo.cpanalyzer.CPAConfig
@@ -15,6 +20,12 @@ import java.util.*
 object StatementProvider {
     private val config: NitronConfig = NitronConfigLoader.load(NitronBindConfig.configFile)
 
+    // cache
+    private val extractor: Extractor? = run {
+        if (NitronBindConfig.cacheFile.toFile().exists()) Extractor.open(config, NitronBindConfig.cacheFile)
+        else null
+    }
+
     private val processors: Map<String, Lazy<CodeProcessor>> = config.langConfig
             .mapValues { lazy {
                 val suffix = ".structures"
@@ -26,12 +37,18 @@ object StatementProvider {
 
     private fun getProcessor(lang: String): CodeProcessor {
         return processors[lang]?.value
-                ?: throw NoSuchElementException("$lang")
+                ?: throw NoSuchElementException(lang)
     }
 
     fun readStatements(fileText: String, lang: String): List<Statement> {
         val processor = getProcessor(lang)
-        val astList = processor.parseSplitting(fileText)
+
+        val tree = extractor?.getAst(MD5.digest(fileText).toString(), lang, processor.nodeTypePool) // get AST from cache
+            ?: processor.parse(fileText)
+                .also { print("(cache missed)") }
+
+        val astList = processor.split(tree)
+
         return astList.mapNotNull { ast ->
             val tokens = ast.toTokens()
             val rText = ast.getText()
@@ -58,13 +75,8 @@ object StatementProvider {
         recordStatementStructure(statementList, lang = language.name().toLowerCase())
     }
 
-    private fun CodeProcessor.parseSplitting(fileText: String): List<AstNode> {
-        return this.split(fileText)
-    }
-
-
     private fun AstNode.toTokens(): List<Token> {
-        return accept(AstFlattenVisitor)
+        return accept(FastAstFlattenVisitor)
                 .mapIndexed { index, it ->
                     NitronBinder.bindToken(
                             value = it.token,
@@ -90,5 +102,21 @@ object StatementProvider {
                 nText = normalized?.getText().orEmpty(),
                 ast = normalized
         )
+    }
+}
+
+object FastAstFlattenVisitor : AstVisitor<List<AstTerminalNode>> {
+    override fun visit(node: AstNode): List<AstTerminalNode> {
+        return node.children?.flatMap {
+            it.accept(this)
+        } ?: emptyList()
+    }
+
+    override fun visitRule(node: AstRuleNode): List<AstTerminalNode> {
+        return visit(node)
+    }
+
+    override fun visitTerminal(node: AstTerminalNode): List<AstTerminalNode> {
+        return listOf(node)
     }
 }

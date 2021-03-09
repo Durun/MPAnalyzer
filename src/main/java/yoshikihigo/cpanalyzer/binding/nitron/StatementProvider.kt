@@ -7,7 +7,6 @@ import io.github.durun.nitron.core.ast.node.AstNode
 import io.github.durun.nitron.core.ast.visitor.AstFlattenVisitor
 import io.github.durun.nitron.core.config.NitronConfig
 import io.github.durun.nitron.core.config.loader.NitronConfigLoader
-import io.github.durun.nitron.inout.database.SQLiteDatabase
 import yoshikihigo.cpanalyzer.CPAConfig
 import yoshikihigo.cpanalyzer.LANGUAGE
 import yoshikihigo.cpanalyzer.data.Statement
@@ -19,7 +18,10 @@ object StatementProvider {
     private val config: NitronConfig = NitronConfigLoader.load(NitronBindConfig.configFile)
 
     // cache
-    private val extractor: Extractor = Extractor.open(config, NitronBindConfig.cacheFile)
+    private val extractor: Extractor? = run {
+        if (NitronBindConfig.cacheFile.toFile().exists()) Extractor.open(config, NitronBindConfig.cacheFile)
+        else null
+    }
 
     private val processors: Map<String, Lazy<CodeProcessor>> = config.langConfig
             .mapValues { lazy {
@@ -38,8 +40,7 @@ object StatementProvider {
     fun readStatements(fileText: String, lang: String): List<Statement> {
         val processor = getProcessor(lang)
 
-        val checksum = MD5.digest(fileText).toString()
-        val tree = extractor.getAst(checksum, lang, processor.nodeTypePool) // get AST from cache
+        val tree = extractor?.getAst(MD5.digest(fileText).toString(), lang, processor.nodeTypePool) // get AST from cache
             ?: processor.parse(fileText)
 
         val astList = processor.split(tree)

@@ -4,7 +4,10 @@ import io.github.durun.nitron.app.preparse.Extractor
 import io.github.durun.nitron.binding.cpanalyzer.CodeProcessor
 import io.github.durun.nitron.core.MD5
 import io.github.durun.nitron.core.ast.node.AstNode
+import io.github.durun.nitron.core.ast.node.AstRuleNode
+import io.github.durun.nitron.core.ast.node.AstTerminalNode
 import io.github.durun.nitron.core.ast.visitor.AstFlattenVisitor
+import io.github.durun.nitron.core.ast.visitor.AstVisitor
 import io.github.durun.nitron.core.config.NitronConfig
 import io.github.durun.nitron.core.config.loader.NitronConfigLoader
 import yoshikihigo.cpanalyzer.CPAConfig
@@ -73,7 +76,7 @@ object StatementProvider {
     }
 
     private fun AstNode.toTokens(): List<Token> {
-        return accept(AstFlattenVisitor)
+        return accept(FastAstFlattenVisitor)
                 .mapIndexed { index, it ->
                     NitronBinder.bindToken(
                             value = it.token,
@@ -99,5 +102,21 @@ object StatementProvider {
                 nText = normalized?.getText().orEmpty(),
                 ast = normalized
         )
+    }
+}
+
+object FastAstFlattenVisitor : AstVisitor<List<AstTerminalNode>> {
+    override fun visit(node: AstNode): List<AstTerminalNode> {
+        return node.children?.flatMap {
+            it.accept(this)
+        } ?: emptyList()
+    }
+
+    override fun visitRule(node: AstRuleNode): List<AstTerminalNode> {
+        return visit(node)
+    }
+
+    override fun visitTerminal(node: AstTerminalNode): List<AstTerminalNode> {
+        return listOf(node)
     }
 }

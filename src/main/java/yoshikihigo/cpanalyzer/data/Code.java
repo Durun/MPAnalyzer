@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import io.github.durun.nitron.core.CodeHashKt;
+import io.github.durun.nitron.core.MD5;
 import yoshikihigo.cpanalyzer.StringUtility;
 import yoshikihigo.cpanalyzer.Utility;
 import yoshikihigo.cpanalyzer.lexer.token.Token;
@@ -114,6 +114,6 @@ public class Code implements Comparable<Code> {
   }
 
   private byte[] getMD5(final String text) {
-    return CodeHashKt.codeHashOf(text);
+    return MD5.digest(text).getBytes();
   }
 }

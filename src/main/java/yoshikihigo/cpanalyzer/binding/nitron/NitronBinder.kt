@@ -1,7 +1,7 @@
 package yoshikihigo.cpanalyzer.binding.nitron
 
+import io.github.durun.nitron.core.MD5
 import io.github.durun.nitron.core.ast.node.AstNode
-import io.github.durun.nitron.core.codeHashOf
 import yoshikihigo.cpanalyzer.data.Statement
 import yoshikihigo.cpanalyzer.lexer.token.GenericToken
 import yoshikihigo.cpanalyzer.lexer.token.Token
@@ -25,7 +25,7 @@ object NitronBinder {
     ): Statement {
         val fromLine = tokens.first().line
         val toLine = tokens.last().line
-        val hash = codeHashOf(nText)
+        val hash = MD5.digest(nText).bytes
         return Statement(fromLine, toLine, nestLevel, isTarget, tokens, rText, nText, hash)
     }
 
@@ -39,7 +39,7 @@ object NitronBinder {
     ): StatementWithAst {
         val fromLine = tokens.first().line
         val toLine = tokens.last().line
-        val hash = codeHashOf(nText)
+        val hash = MD5.digest(nText).bytes
         return StatementWithAst(fromLine, toLine, nestLevel, isTarget, tokens, rText, nText, hash,
                 ast)
     }

@@ -6,6 +6,10 @@ A multilingual edition of [MPAnalyzer](https://github.com/YoshikiHigo/MPAnalyzer
 ## How to build
 - Use JDK11 or higher
 ```
+git clone https://github.com/Durun/nitron.git
+cd nitron
+./gradlew publishToMavenLocal
+
 git clone https://github.com/Durun/MPAnalyzer.git
 cd MPAnalyzer
 git checkout publish

@@ -26,12 +26,17 @@ object StatementProvider {
 
     private fun getProcessor(lang: String): CodeProcessor {
         return processors[lang]?.value
-                ?: throw NoSuchElementException("$lang")
+                ?: throw NoSuchElementException(lang)
     }
 
     fun readStatements(fileText: String, lang: String): List<Statement> {
         val processor = getProcessor(lang)
-        val astList = processor.parseSplitting(fileText)
+
+
+        val tree = processor.parse(fileText)
+        val astList = processor.split(tree)
+
+
         return astList.mapNotNull { ast ->
             val tokens = ast.toTokens()
             val rText = ast.getText()
@@ -57,11 +62,6 @@ object StatementProvider {
     fun recordStatementStructure(statementList: List<Statement>, language: LANGUAGE) {
         recordStatementStructure(statementList, lang = language.name().toLowerCase())
     }
-
-    private fun CodeProcessor.parseSplitting(fileText: String): List<AstNode> {
-        return this.split(fileText)
-    }
-
 
     private fun AstNode.toTokens(): List<Token> {
         return accept(AstFlattenVisitor)

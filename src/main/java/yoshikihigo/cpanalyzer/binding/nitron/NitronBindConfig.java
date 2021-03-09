@@ -5,4 +5,5 @@ import java.nio.file.Paths;
 
 public class NitronBindConfig {
   final public static Path configFile = Paths.get("config/nitron.json");
+  final public static Path cacheFile = Paths.get("cache.db");
 }

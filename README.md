@@ -18,7 +18,7 @@ A multilingual edition of [MPAnalyzer](https://github.com/YoshikiHigo/MPAnalyzer
     ```
     WorkingDir/
     ├ config/
-    └ nitron.jar
+    └ MPAnalyzer.jar
     ```
 
 1. Run the JAR file

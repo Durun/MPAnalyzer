@@ -1,0 +1,38 @@
+name: Build with Gradle
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: true
+    - uses: actions/checkout@v2
+      with:
+        repository: Durun/nitron
+        path: nitron
+        submodules: true
+    - name: Set up JDK 11
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+    - name: Grant execute permission for gradlew
+      run: |
+        chmod +x gradlew
+        chmod +x nitron/gradlew
+    - name: Publish nitron to MavenLocal
+      run: ./gradlew publishToMavenLocal
+      working-directory: ./nitron
+    - name: Build MPAnalyzer
+      run: ./gradlew shadowJar
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.1
+      with:
+        name: build
+        path: build

@@ -22,8 +22,9 @@ A multilingual edition of [MPAnalyzer](https://github.com/YoshikiHigo/MPAnalyzer
     ```
 
 1. Run the JAR file
-
-   Run `java -ea -Xmx8g -jar MPAnalyzer.jar [COMMAND] [OPTIONS]`
+    ```
+    java -ea -Xmx8g -jar MPAnalyzer.jar [COMMAND] [OPTIONS]
+    ```
 
 
 ## Command reference

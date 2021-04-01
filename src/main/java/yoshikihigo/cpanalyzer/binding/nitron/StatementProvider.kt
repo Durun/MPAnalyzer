@@ -21,8 +21,9 @@ object StatementProvider {
     private val config: NitronConfig = NitronConfigLoader.load(NitronBindConfig.configFile)
 
     // cache
+    private val cacheDB = CPAConfig.getInstance().cacheDB ?: NitronBindConfig.cacheFile.toFile()
     private val extractor: Extractor? = run {
-        if (NitronBindConfig.cacheFile.toFile().exists()) Extractor.open(config, NitronBindConfig.cacheFile)
+        if (cacheDB.exists()) Extractor.open(config, NitronBindConfig.cacheFile)
         else null
     }
 

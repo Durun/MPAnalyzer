@@ -6,7 +6,6 @@ import io.github.durun.nitron.core.MD5
 import io.github.durun.nitron.core.ast.node.AstNode
 import io.github.durun.nitron.core.ast.node.AstRuleNode
 import io.github.durun.nitron.core.ast.node.AstTerminalNode
-import io.github.durun.nitron.core.ast.visitor.AstFlattenVisitor
 import io.github.durun.nitron.core.ast.visitor.AstVisitor
 import io.github.durun.nitron.core.config.NitronConfig
 import io.github.durun.nitron.core.config.loader.NitronConfigLoader
@@ -14,26 +13,26 @@ import yoshikihigo.cpanalyzer.CPAConfig
 import yoshikihigo.cpanalyzer.LANGUAGE
 import yoshikihigo.cpanalyzer.data.Statement
 import yoshikihigo.cpanalyzer.lexer.token.Token
+import java.io.File
 import java.nio.file.Paths
-import java.util.*
 
 object StatementProvider {
     private val config: NitronConfig = NitronConfigLoader.load(NitronBindConfig.configFile)
 
     // cache
-    private val extractor: Extractor? = run {
-        if (NitronBindConfig.cacheFile.toFile().exists()) Extractor.open(config, NitronBindConfig.cacheFile)
-        else null
-    }
+    private val cacheDB: File? = CPAConfig.getInstance().cacheDB?.takeIf { it.exists() }
+    private val extractor: Extractor? = cacheDB?.let { Extractor.open(config, it.toPath()) }
 
     private val processors: Map<String, Lazy<CodeProcessor>> = config.langConfig
-            .mapValues { lazy {
+        .mapValues {
+            lazy {
                 val suffix = ".structures"
                 CodeProcessor(
-                        it.value,
-                        outputPath = Paths.get(CPAConfig.getInstance().database + suffix)
+                    it.value,
+                    outputPath = Paths.get(CPAConfig.getInstance().database + suffix)
                 )
-            } }
+            }
+        }
 
     private fun getProcessor(lang: String): CodeProcessor {
         return processors[lang]?.value
@@ -42,10 +41,10 @@ object StatementProvider {
 
     fun readStatements(fileText: String, lang: String): List<Statement> {
         val processor = getProcessor(lang)
-
-        val tree = extractor?.getAst(MD5.digest(fileText).toString(), lang, processor.nodeTypePool) // get AST from cache
+        val fileHash = MD5.digest(fileText).toString()
+        val tree = extractor?.getAst(fileHash, lang, processor.nodeTypePool) // get AST from cache
             ?: processor.parse(fileText)
-                .also { print("(cache missed)") }
+                .also { println("cache missed: $lang, file=$fileHash") }
 
         val astList = processor.split(tree)
 

@@ -14,27 +14,25 @@ import yoshikihigo.cpanalyzer.LANGUAGE
 import yoshikihigo.cpanalyzer.data.Statement
 import yoshikihigo.cpanalyzer.lexer.token.Token
 import java.io.File
-import java.io.FileNotFoundException
 import java.nio.file.Paths
 
 object StatementProvider {
     private val config: NitronConfig = NitronConfigLoader.load(NitronBindConfig.configFile)
 
     // cache
-    private val cacheDB: File? = CPAConfig.getInstance().cacheDB
-    private val extractor: Extractor? = run {
-        if (cacheDB?.exists() == true) Extractor.open(config, cacheDB.toPath())
-        else null
-    }
+    private val cacheDB: File? = CPAConfig.getInstance().cacheDB?.takeIf { it.exists() }
+    private val extractor: Extractor? = cacheDB?.let { Extractor.open(config, it.toPath()) }
 
     private val processors: Map<String, Lazy<CodeProcessor>> = config.langConfig
-            .mapValues { lazy {
+        .mapValues {
+            lazy {
                 val suffix = ".structures"
                 CodeProcessor(
-                        it.value,
-                        outputPath = Paths.get(CPAConfig.getInstance().database + suffix)
+                    it.value,
+                    outputPath = Paths.get(CPAConfig.getInstance().database + suffix)
                 )
-            } }
+            }
+        }
 
     private fun getProcessor(lang: String): CodeProcessor {
         return processors[lang]?.value

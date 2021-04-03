@@ -6,7 +6,6 @@ import io.github.durun.nitron.core.MD5
 import io.github.durun.nitron.core.ast.node.AstNode
 import io.github.durun.nitron.core.ast.node.AstRuleNode
 import io.github.durun.nitron.core.ast.node.AstTerminalNode
-import io.github.durun.nitron.core.ast.visitor.AstFlattenVisitor
 import io.github.durun.nitron.core.ast.visitor.AstVisitor
 import io.github.durun.nitron.core.config.NitronConfig
 import io.github.durun.nitron.core.config.loader.NitronConfigLoader
@@ -14,16 +13,20 @@ import yoshikihigo.cpanalyzer.CPAConfig
 import yoshikihigo.cpanalyzer.LANGUAGE
 import yoshikihigo.cpanalyzer.data.Statement
 import yoshikihigo.cpanalyzer.lexer.token.Token
+import java.io.FileNotFoundException
 import java.nio.file.Paths
-import java.util.*
 
 object StatementProvider {
     private val config: NitronConfig = NitronConfigLoader.load(NitronBindConfig.configFile)
 
     // cache
-    private val cacheDB = CPAConfig.getInstance().cacheDB ?: NitronBindConfig.cacheFile.toFile()
+    private val cacheDB by lazy {
+        CPAConfig.getInstance().cacheDB
+            ?: NitronBindConfig.cacheFile.toFile().takeIf { it.exists() }
+            ?: throw FileNotFoundException("${NitronBindConfig.cacheFile}")
+    }
     private val extractor: Extractor? = run {
-        if (cacheDB.exists()) Extractor.open(config, NitronBindConfig.cacheFile)
+        if (cacheDB.exists()) Extractor.open(config, cacheDB.toPath())
         else null
     }
 

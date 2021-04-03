@@ -43,10 +43,10 @@ object StatementProvider {
 
     fun readStatements(fileText: String, lang: String): List<Statement> {
         val processor = getProcessor(lang)
-
-        val tree = extractor?.getAst(MD5.digest(fileText).toString(), lang, processor.nodeTypePool) // get AST from cache
+        val fileHash = MD5.digest(fileText).toString()
+        val tree = extractor?.getAst(fileHash, lang, processor.nodeTypePool) // get AST from cache
             ?: processor.parse(fileText)
-                .also { print("(cache missed)") }
+                .also { println("cache missed: $lang, file=$fileHash") }
 
         val astList = processor.split(tree)
 

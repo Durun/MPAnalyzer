@@ -1,13 +1,11 @@
 package yoshikihigo.cpanalyzer;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.function.Consumer;
 
 public class JarEntryPoint {
 
   public static void main(final String[] args) {
-
 
     if (0 == args.length) {
       printUsage();
@@ -15,41 +13,25 @@ public class JarEntryPoint {
     }
 
     final String[] realArgs = Arrays.copyOfRange(args, 1, args.length);
-    String className = null;
+    final Consumer<String[]> mainMethod;
     switch (args[0]) {
       case "changes":
-        className = "yoshikihigo.cpanalyzer.ChangeExtractor";
+        mainMethod = ChangeExtractor::main;
         break;
       case "patterns":
-        className = "yoshikihigo.cpanalyzer.ChangePatternMaker";
+        mainMethod = ChangePatternMaker::main;
         break;
       case "bugfixes":
-        className = "yoshikihigo.cpanalyzer.BugFixAllMaker";
+        mainMethod = BugFixAllMaker::main;
         break;
       default:
-        System.err.println("invalid name:" + args[0]);
+        System.err.println("invalid command:" + args[0]);
+        mainMethod = null;
         printUsage();
         System.exit(0);
     }
 
-    try {
-      final Class<?> mainClass = Class.forName(className);
-      final Method mainMethod = mainClass.getMethod("main", String[].class);
-      mainMethod.invoke(null, new Object[] {realArgs});
-
-    } catch (final ClassNotFoundException e) {
-      System.err.println("unknown class Name: " + className);
-      System.exit(1);
-    } catch (final NoSuchMethodException e) {
-      System.err.println("main method was not found in class");
-      System.exit(1);
-    } catch (final InvocationTargetException e) {
-      System.err.println("An exception was thrown by invoked main method");
-      System.exit(1);
-    } catch (final IllegalAccessException e) {
-      System.err.println("failed to access main method");
-      System.exit(1);
-    }
+    mainMethod.accept(realArgs);
   }
 
   private static void printUsage() {

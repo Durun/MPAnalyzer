@@ -13,6 +13,7 @@ import yoshikihigo.cpanalyzer.CPAConfig
 import yoshikihigo.cpanalyzer.LANGUAGE
 import yoshikihigo.cpanalyzer.data.Statement
 import yoshikihigo.cpanalyzer.lexer.token.Token
+import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.Paths
 
@@ -20,13 +21,9 @@ object StatementProvider {
     private val config: NitronConfig = NitronConfigLoader.load(NitronBindConfig.configFile)
 
     // cache
-    private val cacheDB by lazy {
-        CPAConfig.getInstance().cacheDB
-            ?: NitronBindConfig.cacheFile.toFile().takeIf { it.exists() }
-            ?: throw FileNotFoundException("${NitronBindConfig.cacheFile}")
-    }
+    private val cacheDB: File? = CPAConfig.getInstance().cacheDB
     private val extractor: Extractor? = run {
-        if (cacheDB.exists()) Extractor.open(config, cacheDB.toPath())
+        if (cacheDB?.exists() == true) Extractor.open(config, cacheDB.toPath())
         else null
     }
 

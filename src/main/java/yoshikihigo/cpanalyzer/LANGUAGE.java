@@ -18,10 +18,6 @@ public class LANGUAGE {
   final private Collection<String> extensions;
 
   static { // init
-    register("C", List.of(".c", ".h"));
-    register("CPP", List.of(".cc", "cpp", "cxx", ".hh", "hpp", "hxx"));
-    register("JAVA", List.of(".java"));
-    register("PYTHON", List.of(".py"));
     NitronConfigLoader.INSTANCE
             .load(NitronBindConfig.configFile)
             .getLangConfig()

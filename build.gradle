@@ -22,7 +22,7 @@ plugins {
 }
 
 group = 'com.github.YoshikiHigo'
-version = '0.1-SNAPSHOT'
+version = '0.2-SNAPSHOT'
 
 repositories {
     // Use jcenter for resolving dependencies.
@@ -61,7 +61,7 @@ dependencies {
 	// CommentRemover
 	//implementation 'com.github.YoshikiHigo:CommentRemover:v0.1.0'
     implementation files("libs/CommentRemover/build/libs/CommentRemover.jar")
-    implementation group: 'io.github.durun', name: 'nitron', version: '0.1'
+    implementation group: 'io.github.durun', name: 'nitron', version: '0.2-SNAPSHOT'
 }
 
 application {
